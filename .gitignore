@@ -101,3 +101,8 @@ coverage.xml
 .claude/
 .cursor/
 .agents/
+
+# Local yxg research/runtime artifacts
+.yxg/data/*.sqlite
+.yxg/data/*_started_at
+plugins/yxg/

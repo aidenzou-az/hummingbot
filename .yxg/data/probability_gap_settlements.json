@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "settlements": {
+    "bitcoin-up-or-down-on-may-5-2026": {
+      "outcome": "UP",
+      "reference_price": "80076.27000000",
+      "settlement_close": "81526.36000000",
+      "settlement_time": "2026-05-05T16:00:00+00:00",
+      "tie_rule": "DOWN_ON_TIE"
+    },
+    "bitcoin-up-or-down-on-may-6-2026": {
+      "outcome": "UP",
+      "reference_price": "81526.36000000",
+      "settlement_close": "81700.36000000",
+      "settlement_time": "2026-05-06T16:00:00+00:00",
+      "tie_rule": "DOWN_ON_TIE"
+    },
+    "bitcoin-up-or-down-on-may-7-2026": {
+      "outcome": "DOWN",
+      "reference_price": "81700.36000000",
+      "settlement_close": "79855.67000000",
+      "settlement_time": "2026-05-07T16:00:00+00:00",
+      "tie_rule": "DOWN_ON_TIE"
+    }
+  },
+  "updated_at": "2026-05-08T12:32:00+00:00"
+}

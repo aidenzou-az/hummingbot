@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.hummingbot.probability-gap-sampling</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/bytedance/Projects/hummingbot/scripts/probability_gap_sampling_schedule.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/bytedance/Projects/hummingbot</string>
+
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict>
+      <key>Hour</key>
+      <integer>12</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>22</integer>
+      <key>Minute</key>
+      <integer>30</integer>
+    </dict>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/probability_gap_sampling_launchd.out</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/probability_gap_sampling_launchd.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PROB_GAP_RUN_DAYS</key>
+    <string>10</string>
+    <key>PROB_GAP_DB_PATH</key>
+    <string>.yxg/data/probability_gap_samples_wu006_clean.sqlite</string>
+    <key>PROB_GAP_LOG_PATH</key>
+    <string>/tmp/probability_gap_sampling_wu006_clean.log</string>
+    <key>PROB_GAP_PYDEPS_PATH</key>
+    <string>/tmp/hb_pydeps</string>
+    <key>PROB_GAP_PYTHON_BIN</key>
+    <string>/Users/bytedance/.pyenv/versions/3.12.4/bin/python</string>
+  </dict>
+</dict>
+</plist>
