@@ -36,9 +36,13 @@ def _serialize_payload(payload: Dict[str, Any]) -> str:
             return str(value)
         if isinstance(value, datetime):
             return value.isoformat()
+        if isinstance(value, dict):
+            return {key: convert(inner_value) for key, inner_value in value.items()}
+        if isinstance(value, list):
+            return [convert(item) for item in value]
         return value
 
-    return json.dumps({key: convert(value) for key, value in payload.items()}, sort_keys=True)
+    return json.dumps(convert(payload), sort_keys=True)
 
 
 @dataclass(frozen=True)
@@ -110,6 +114,24 @@ class ProbabilityGapSnapshotStore:
                     taker_edge_down TEXT,
                     current_spot_price TEXT,
                     reference_price TEXT,
+                    forward_source TEXT,
+                    estimated_forward_price TEXT,
+                    basis_annualized TEXT,
+                    perp_mark_price TEXT,
+                    perp_index_price TEXT,
+                    perp_last_funding_rate TEXT,
+                    perp_next_funding_time TEXT,
+                    delivery_symbol TEXT,
+                    delivery_price TEXT,
+                    forward_basis_reason TEXT,
+                    option_chain_slice_json TEXT,
+                    option_chain_slice_count TEXT,
+                    option_chain_slice_source TEXT,
+                    option_chain_slice_expiry TEXT,
+                    option_chain_horizon_mismatch_minutes TEXT,
+                    smile_call_spread_probability TEXT,
+                    smile_call_spread_status TEXT,
+                    smile_call_spread_reason TEXT,
                     up_best_bid TEXT,
                     up_best_ask TEXT,
                     down_best_bid TEXT,
@@ -147,6 +169,24 @@ class ProbabilityGapSnapshotStore:
                 "maker_edge_down",
                 "taker_edge_up",
                 "taker_edge_down",
+                "forward_source",
+                "estimated_forward_price",
+                "basis_annualized",
+                "perp_mark_price",
+                "perp_index_price",
+                "perp_last_funding_rate",
+                "perp_next_funding_time",
+                "delivery_symbol",
+                "delivery_price",
+                "forward_basis_reason",
+                "option_chain_slice_json",
+                "option_chain_slice_count",
+                "option_chain_slice_source",
+                "option_chain_slice_expiry",
+                "option_chain_horizon_mismatch_minutes",
+                "smile_call_spread_probability",
+                "smile_call_spread_status",
+                "smile_call_spread_reason",
             ]:
                 if column_name not in existing_columns:
                     connection.execute(f"ALTER TABLE probability_gap_snapshots ADD COLUMN {column_name} TEXT")
@@ -204,6 +244,24 @@ class ProbabilityGapSnapshotStore:
                     taker_edge_down,
                     current_spot_price,
                     reference_price,
+                    forward_source,
+                    estimated_forward_price,
+                    basis_annualized,
+                    perp_mark_price,
+                    perp_index_price,
+                    perp_last_funding_rate,
+                    perp_next_funding_time,
+                    delivery_symbol,
+                    delivery_price,
+                    forward_basis_reason,
+                    option_chain_slice_json,
+                    option_chain_slice_count,
+                    option_chain_slice_source,
+                    option_chain_slice_expiry,
+                    option_chain_horizon_mismatch_minutes,
+                    smile_call_spread_probability,
+                    smile_call_spread_status,
+                    smile_call_spread_reason,
                     up_best_bid,
                     up_best_ask,
                     down_best_bid,
@@ -212,7 +270,7 @@ class ProbabilityGapSnapshotStore:
                     forced_exit_time,
                     snapshot_reason,
                     payload_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -250,6 +308,24 @@ class ProbabilityGapSnapshotStore:
                         str(snapshot.get("taker_edge_down", "")),
                         str(snapshot.get("current_spot_price", "")),
                         str(snapshot.get("reference_price", "")),
+                        snapshot.get("forward_source", ""),
+                        str(snapshot.get("estimated_forward_price", "")),
+                        str(snapshot.get("basis_annualized", "")),
+                        str(snapshot.get("perp_mark_price", "")),
+                        str(snapshot.get("perp_index_price", "")),
+                        str(snapshot.get("perp_last_funding_rate", "")),
+                        snapshot.get("perp_next_funding_time", ""),
+                        snapshot.get("delivery_symbol", ""),
+                        str(snapshot.get("delivery_price", "")),
+                        snapshot.get("forward_basis_reason", ""),
+                        _serialize_payload(snapshot.get("option_chain_slice", [])),
+                        str(snapshot.get("option_chain_slice_count", "")),
+                        snapshot.get("option_chain_slice_source", ""),
+                        snapshot.get("option_chain_slice_expiry", ""),
+                        str(snapshot.get("option_chain_horizon_mismatch_minutes", "")),
+                        str(snapshot.get("smile_call_spread_probability", "")),
+                        snapshot.get("smile_call_spread_status", ""),
+                        snapshot.get("smile_call_spread_reason", ""),
                         str(snapshot.get("up_best_bid", "")),
                         str(snapshot.get("up_best_ask", "")),
                         str(snapshot.get("down_best_bid", "")),
@@ -316,6 +392,24 @@ class ProbabilityGapSnapshotStore:
                     "taker_edge_down": _safe_decimal(row["taker_edge_down"]) if "taker_edge_down" in row.keys() else None,
                     "current_spot_price": _safe_decimal(row["current_spot_price"]),
                     "reference_price": _safe_decimal(row["reference_price"]),
+                    "forward_source": row["forward_source"] if "forward_source" in row.keys() else "",
+                    "estimated_forward_price": _safe_decimal(row["estimated_forward_price"]) if "estimated_forward_price" in row.keys() else None,
+                    "basis_annualized": _safe_decimal(row["basis_annualized"]) if "basis_annualized" in row.keys() else None,
+                    "perp_mark_price": _safe_decimal(row["perp_mark_price"]) if "perp_mark_price" in row.keys() else None,
+                    "perp_index_price": _safe_decimal(row["perp_index_price"]) if "perp_index_price" in row.keys() else None,
+                    "perp_last_funding_rate": _safe_decimal(row["perp_last_funding_rate"]) if "perp_last_funding_rate" in row.keys() else None,
+                    "perp_next_funding_time": _parse_iso(row["perp_next_funding_time"]) if "perp_next_funding_time" in row.keys() else None,
+                    "delivery_symbol": row["delivery_symbol"] if "delivery_symbol" in row.keys() else "",
+                    "delivery_price": _safe_decimal(row["delivery_price"]) if "delivery_price" in row.keys() else None,
+                    "forward_basis_reason": row["forward_basis_reason"] if "forward_basis_reason" in row.keys() else "",
+                    "option_chain_slice": json.loads(row["option_chain_slice_json"]) if "option_chain_slice_json" in row.keys() and row["option_chain_slice_json"] else [],
+                    "option_chain_slice_count": int(row["option_chain_slice_count"]) if "option_chain_slice_count" in row.keys() and row["option_chain_slice_count"] not in (None, "") else 0,
+                    "option_chain_slice_source": row["option_chain_slice_source"] if "option_chain_slice_source" in row.keys() else "",
+                    "option_chain_slice_expiry": _parse_iso(row["option_chain_slice_expiry"]) if "option_chain_slice_expiry" in row.keys() else None,
+                    "option_chain_horizon_mismatch_minutes": _safe_decimal(row["option_chain_horizon_mismatch_minutes"]) if "option_chain_horizon_mismatch_minutes" in row.keys() else None,
+                    "smile_call_spread_probability": _safe_decimal(row["smile_call_spread_probability"]) if "smile_call_spread_probability" in row.keys() else None,
+                    "smile_call_spread_status": row["smile_call_spread_status"] if "smile_call_spread_status" in row.keys() else "",
+                    "smile_call_spread_reason": row["smile_call_spread_reason"] if "smile_call_spread_reason" in row.keys() else "",
                     "up_best_bid": _safe_decimal(row["up_best_bid"]),
                     "up_best_ask": _safe_decimal(row["up_best_ask"]),
                     "down_best_bid": _safe_decimal(row["down_best_bid"]),

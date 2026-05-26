@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WU-017 BTC 1d 采样分析交互报告</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fffaf0;
+      --ink: #20201d;
+      --muted: #71695d;
+      --line: #ded1bd;
+      --green: #18794e;
+      --red: #b42318;
+      --amber: #ad6b00;
+      --blue: #1d5f82;
+      --chip: #efe2ce;
+      --shadow: 0 18px 45px rgba(51, 38, 19, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 208, 128, 0.34), transparent 34rem),
+        linear-gradient(135deg, #f7f0e4 0%, #eee0cc 48%, #f6f2e9 100%);
+      font-family: ui-serif, "Iowan Old Style", "Songti SC", "STSong", Georgia, serif;
+      line-height: 1.55;
+    }
+
+    .shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: rgba(255, 250, 240, 0.86);
+      border: 1px solid rgba(115, 89, 49, 0.18);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-main {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -120px;
+      width: 320px;
+      height: 320px;
+      background: conic-gradient(from 20deg, rgba(180, 35, 24, 0.18), rgba(24, 121, 78, 0.16), rgba(29, 95, 130, 0.18), rgba(180, 35, 24, 0.18));
+      border-radius: 50%;
+      filter: blur(2px);
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin: 0 0 10px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 0.96;
+      margin: 0 0 18px;
+      max-width: 780px;
+      letter-spacing: -0.045em;
+    }
+
+    .hero-copy {
+      max-width: 820px;
+      font-size: 18px;
+      color: #3b342d;
+      margin: 0;
+    }
+
+    .verdict {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+    }
+
+    .stamp {
+      width: 142px;
+      height: 142px;
+      border: 5px solid var(--red);
+      border-radius: 50%;
+      color: var(--red);
+      display: grid;
+      place-items: center;
+      font-family: ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      transform: rotate(-9deg);
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .verdict h2 {
+      margin: 18px 0 8px;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .verdict p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 12px 0;
+      margin-bottom: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav button, .toggle button {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font: 700 14px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .nav button:hover, .toggle button:hover { transform: translateY(-1px); }
+    .nav button.active, .toggle button.active {
+      background: #20201d;
+      color: #fffaf0;
+      border-color: #20201d;
+    }
+
+    .section {
+      display: none;
+      animation: fade 260ms ease;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      padding: 22px;
+      background: rgba(255, 250, 240, 0.92);
+      border: 1px solid rgba(115, 89, 49, 0.18);
+      border-radius: 22px;
+      box-shadow: 0 10px 24px rgba(51, 38, 19, 0.07);
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .metric-label {
+      color: var(--muted);
+      font: 700 12px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      font: 900 34px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      margin: 4px 0 2px;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-note {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .good { color: var(--green); }
+    .bad { color: var(--red); }
+    .warn { color: var(--amber); }
+    .info { color: var(--blue); }
+
+    h2.section-title {
+      font-size: 34px;
+      margin: 28px 0 12px;
+      letter-spacing: -0.035em;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      letter-spacing: -0.025em;
+    }
+
+    .plain {
+      margin: 0;
+      color: #3f3931;
+    }
+
+    .muted { color: var(--muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(239, 226, 206, 0.6);
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--chip);
+      color: #3d3328;
+      font: 800 12px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      white-space: nowrap;
+    }
+
+    .tag.good { background: rgba(24, 121, 78, 0.12); color: var(--green); }
+    .tag.bad { background: rgba(180, 35, 24, 0.12); color: var(--red); }
+    .tag.warn { background: rgba(173, 107, 0, 0.14); color: var(--amber); }
+    .tag.info { background: rgba(29, 95, 130, 0.12); color: var(--blue); }
+
+    .bar-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 82px;
+      gap: 10px;
+      align-items: center;
+      font-family: ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      font-size: 14px;
+    }
+
+    .bar-track {
+      height: 14px;
+      background: rgba(32, 32, 29, 0.09);
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar {
+      position: absolute;
+      height: 100%;
+      left: 50%;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .bar.neg {
+      left: auto;
+      right: 50%;
+      background: var(--red);
+    }
+
+    .axis {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(32, 32, 29, 0.35);
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .step {
+      padding: 18px;
+      border-radius: 20px;
+      background: #fff7e8;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      min-height: 170px;
+    }
+
+    .step.active {
+      outline: 3px solid rgba(32, 32, 29, 0.16);
+      background: #fff;
+    }
+
+    .step strong {
+      display: block;
+      font: 900 18px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      margin-bottom: 8px;
+    }
+
+    .explain-box {
+      margin-top: 12px;
+      padding: 20px;
+      border-radius: 20px;
+      background: #20201d;
+      color: #fffaf0;
+      min-height: 120px;
+    }
+
+    .explain-box p { margin: 0; }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 250, 240, 0.75);
+    }
+
+    details + details { margin-top: 10px; }
+
+    summary {
+      cursor: pointer;
+      font: 900 16px ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+    }
+
+    .callout {
+      border-left: 5px solid var(--amber);
+      background: rgba(173, 107, 0, 0.09);
+      padding: 16px 18px;
+      border-radius: 16px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-family: ui-sans-serif, "Avenir Next", "PingFang SC", sans-serif;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: span 12; }
+      .stepper { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 110px 1fr 70px; }
+      .stamp { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="panel hero-main">
+        <p class="eyebrow">WU-017 / BTC 1d / Probability Gap</p>
+        <h1>从“看起来有 edge”到“能不能交易”的拆解</h1>
+        <p class="hero-copy">这份交互报告把 10 天采样结果拆成五层：样本是否可靠、settlement 是否能对齐、模型是否真的预测结算、执行 replay 是否能赚钱、下一步应该做什么。</p>
+      </div>
+      <div class="panel verdict">
+        <div class="stamp">NO-GO</div>
+        <div>
+          <h2>不进入 paper trading</h2>
+          <p>不是因为模型完全没信号，而是因为信号还没有稳定跑赢简单基线，并且默认 maker-first 执行为负。</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="nav" aria-label="report sections">
+      <button class="active" data-section="overview">总览</button>
+      <button data-section="data">数据质量</button>
+      <button data-section="settlement">Settlement</button>
+      <button data-section="model">模型判断</button>
+      <button data-section="execution">执行 Replay</button>
+      <button data-section="next">下一步</button>
+    </nav>
+
+    <section id="overview" class="section active">
+      <h2 class="section-title">一眼看懂结论</h2>
+      <div class="grid">
+        <div class="card span-3">
+          <div class="metric-label">Frozen rows</div>
+          <div class="metric-value">4,654</div>
+          <p class="metric-note">2026-05-09 到 2026-05-19 的采样快照。</p>
+        </div>
+        <div class="card span-3">
+          <div class="metric-label">Validation entries</div>
+          <div class="metric-value">2,366</div>
+          <p class="metric-note">用于 settlement-aware model validation 的 tradable entries。</p>
+        </div>
+        <div class="card span-3">
+          <div class="metric-label">Usable settlements</div>
+          <div class="metric-value">9 / 11</div>
+          <p class="metric-note">9 个市场可用 Binance 1m rule 标签。</p>
+        </div>
+        <div class="card span-3">
+          <div class="metric-label">Default maker</div>
+          <div class="metric-value bad">-1.4288</div>
+          <p class="metric-note">maker_first replay total realized move。</p>
+        </div>
+        <div class="card span-7">
+          <h3>核心判断链</h3>
+          <div class="stepper">
+            <div class="step active" data-step="0"><strong>1. 数据可用吗？</strong><span>可用，但不均匀。真正 conclusion-grade 只有 4 个市场。</span></div>
+            <div class="step" data-step="1"><strong>2. 模型有信号吗？</strong><span>有一部分 settlement signal，但没有跑赢 always_up。</span></div>
+            <div class="step" data-step="2"><strong>3. 信号能执行吗？</strong><span>默认 maker-first 为负，说明 edge 没稳定转成 EV。</span></div>
+            <div class="step" data-step="3"><strong>4. 下一步是什么？</strong><span>继续采样 + 专门做 execution robustness。</span></div>
+          </div>
+          <div class="explain-box" id="stepText">
+            <p>数据足够做一轮研究复盘，但还不足以做交易批准。原因是样本覆盖不均匀，May 11 权重很大，May 9 和 May 14 又是负市场。</p>
+          </div>
+        </div>
+        <div class="card span-5">
+          <h3>为什么不是直接 paper trading？</h3>
+          <p class="plain">paper trading 的门槛不是“模型看起来有 edge”，而是“模型 edge 能在盘口路径里被执行，并且扣掉 spread、fee、退出机制之后仍然稳定为正”。这次失败在执行层：默认 maker-first 的成交路径亏钱。</p>
+          <div class="callout" style="margin-top: 14px;">最重要的结论：当前问题已经从“估 fair value”推进到“怎么把 fair value 变成可执行正 EV”。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="data" class="section">
+      <h2 class="section-title">数据质量：哪些市场能当证据？</h2>
+      <div class="grid">
+        <div class="card span-12">
+          <table>
+            <thead>
+              <tr>
+                <th>市场</th>
+                <th>Rows</th>
+                <th>Tradable</th>
+                <th>分类</th>
+                <th>怎么用</th>
+              </tr>
+            </thead>
+            <tbody id="marketRows"></tbody>
+          </table>
+        </div>
+        <div class="card span-6">
+          <h3>为什么不能只看 4,654 行？</h3>
+          <p class="plain">因为 snapshot 不是独立样本。同一个市场每 15 秒采一次，连续几十分钟的快照高度相关。如果直接按行数统计，会让 May 11 这种长采样市场过度支配结论。</p>
+        </div>
+        <div class="card span-6">
+          <h3>真正应该怎么读？</h3>
+          <p class="plain">先按市场分组，再看每个市场的 settlement PnL、执行 replay、参数稳定性。只有多个独立市场都赚钱，才有资格说策略可能有效。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="settlement" class="section">
+      <h2 class="section-title">Settlement：这次怎么判断市场最终输赢？</h2>
+      <div class="grid">
+        <div class="card span-4">
+          <div class="metric-label">Binance rule labels</div>
+          <div class="metric-value good">9</div>
+          <p class="metric-note">用 Binance 1m close + market reference price 判定。</p>
+        </div>
+        <div class="card span-4">
+          <div class="metric-label">Official labels</div>
+          <div class="metric-value warn">0</div>
+          <p class="metric-note">没有拿到 official settlement，但 BTC 1d 规则可用 Binance 1m proxy。</p>
+        </div>
+        <div class="card span-4">
+          <div class="metric-label">Unavailable</div>
+          <div class="metric-value bad">2</div>
+          <p class="metric-note">May 16 / May 20 缺 market end 或 observed metadata。</p>
+        </div>
+        <div class="card span-12">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>Outcome</th>
+                <th>Settlement close</th>
+                <th>Reference</th>
+                <th>解释</th>
+              </tr>
+            </thead>
+            <tbody id="settlementRows"></tbody>
+          </table>
+        </div>
+        <div class="card span-12">
+          <h3>为什么 Binance 1m proxy 在这里可接受？</h3>
+          <p class="plain">BTC 1d 这类 Polymarket 市场的结算本身引用 Binance BTCUSDT 的价格规则。对已 closed 市场，用 Binance 1m close 和 reference price 判 UP/DOWN，本质上是在复刻市场规则。它不是泛化到所有 Polymarket 的 official settlement 方案，但对这个市场族是合理 proxy。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="model" class="section">
+      <h2 class="section-title">模型判断：有 signal，但还不是可交易 edge</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <h3>Settlement PnL 对比</h3>
+          <div class="bar-list" id="modelBars"></div>
+        </div>
+        <div class="card span-6">
+          <h3>怎么理解这个矛盾？</h3>
+          <p class="plain">`iv_digital_v1` 的 total settlement PnL 是正的，说明它不是完全随机。但 `always_up` 在这批样本里更高，说明当前样本存在方向性偏置，模型还没有证明自己能稳定提供超越简单方向偏置的 alpha。</p>
+        </div>
+        <div class="card span-12">
+          <h3>按市场看 raw 模型</h3>
+          <div class="bar-list" id="marketPnlBars"></div>
+        </div>
+        <div class="card span-6">
+          <h3>模型演进结论</h3>
+          <p class="plain">`iv_digital_forward_rf_v2` 只是打平 `iv_digital_v1`，没有改善；`horizon_smile_v2` 覆盖率够，但市场稳定性更弱；`smile_call_spread_v2` 因 horizon mismatch 仍不能直接用。</p>
+        </div>
+        <div class="card span-6">
+          <h3>为什么不升级 calibrated model？</h3>
+          <p class="plain">报告里的最佳平均 PnL 是 `iv_digital_bucket_shrinkage`，但校准状态是 `in_sample_only_rejected_by_leave_one_market_out`。也就是它在样本内好看，但换市场验证不稳，不能上线。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="execution" class="section">
+      <h2 class="section-title">执行 Replay：问题集中在“成交后能不能赚”</h2>
+      <div class="grid">
+        <div class="card span-12">
+          <div class="toggle" style="margin-bottom: 14px;">
+            <button class="active" data-replay="maker_first">Maker first</button>
+            <button data-replay="taker_baseline">Taker baseline</button>
+            <button data-replay="taker_hold">Taker hold</button>
+          </div>
+          <div class="grid" id="replayCards"></div>
+        </div>
+        <div class="card span-6">
+          <h3>默认 maker-first 为什么 no-go？</h3>
+          <p class="plain">maker-first 的逻辑是挂在 fair value 下方，等待别人打进来。理论上这能省 fee 并获得更好价格；但 replay 显示成交后的路径不够好，55 笔总 realized move 为 -1.4288，正收益比例只有 21.82%。这说明“被成交”本身可能带有不利选择。</p>
+        </div>
+        <div class="card span-6">
+          <h3>taker_hold 为什么值得继续看？</h3>
+          <p class="plain">taker_hold 的总 realized move 是 +0.34，正收益比例 55.56%。但交易数只有 36，样本还小，且需要按市场做 out-of-sample 验证。它是候选方向，不是上线结论。</p>
+        </div>
+        <div class="card span-12">
+          <h3>参数网格怎么读？</h3>
+          <p class="plain">1080 个参数组合里有 351 个为正。最好的单点集中在 `buffer=0.08`、`gamma=low+medium`、`min_time_to_expiry=30`、`take_profit=0.01`、`stop_loss=0.05/0.08`。但稳定区不够强，说明还不能把它当成稳健策略。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="next" class="section">
+      <h2 class="section-title">下一步应该解决什么？</h2>
+      <div class="grid">
+        <div class="card span-4">
+          <h3>1. 继续采样</h3>
+          <p class="plain">目标不是堆 snapshot，而是拿到更多完整 settled markets。建议至少 15-20 个 conclusion-grade BTC 1d 市场后再做下一轮正式 go/no-go。</p>
+        </div>
+        <div class="card span-4">
+          <h3>2. 做执行稳健性 WU</h3>
+          <p class="plain">重点不是继续调 fair value，而是验证 `taker_hold` 和高 buffer maker 是否能在 leave-one-market-out 下稳定。</p>
+        </div>
+        <div class="card span-4">
+          <h3>3. 维持模型基线</h3>
+          <p class="plain">继续用 `iv_digital_v1` 做 baseline；horizon-smile 可以作为诊断字段跟踪，但不要 promote 到 live decision。</p>
+        </div>
+        <div class="card span-12">
+          <h3>下一轮验收门槛</h3>
+          <details open>
+            <summary>必须按市场通过，而不是按 snapshot 通过</summary>
+            <p>如果只靠一个长采样市场赚钱，策略仍然不合格。需要多个独立市场 PnL 为正，且最大单市场贡献不能过度集中。</p>
+          </details>
+          <details>
+            <summary>执行策略要扣掉真实交易成本</summary>
+            <p>taker fee、spread、退出滑点和 forced exit 都要纳入 replay。否则看到的是理论 edge，不是可执行 EV。</p>
+          </details>
+          <details>
+            <summary>参数不能只有一个点赚钱</summary>
+            <p>如果只有 `buffer=0.08` 的某个组合赚钱，旁边参数都亏，这通常是过拟合。要看参数区域，而不是单个最优参数。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">Generated from WU-017 reports: model_validation, model_evolution, execution_replay, and post_sampling_report.</p>
+  </main>
+
+  <script>
+    const markets = [
+      ["May 9", 812, 679, "conclusion", "结论级：可用于模型和执行判断"],
+      ["May 11", 1051, 906, "conclusion", "结论级：但对正收益贡献很大，需防单市场偏置"],
+      ["May 14", 1537, 567, "conclusion", "结论级：raw 模型为负，是稳定性风险"],
+      ["May 18", 440, 208, "conclusion", "结论级：可用但样本少于前三个"],
+      ["May 10", 74, 0, "partial", "辅助观察：无 tradable entries"],
+      ["May 15", 709, 4, "partial", "辅助观察：tradable 太少"],
+      ["May 19", 10, 2, "partial", "辅助观察：tradable 太少"],
+      ["May 12", 5, 0, "exclude", "排除：样本过少"],
+      ["May 13", 14, 0, "exclude", "排除：样本过少"],
+      ["May 16", 1, 0, "exclude", "排除：settlement unavailable"],
+      ["May 20", 1, 0, "exclude", "排除：settlement unavailable"]
+    ];
+
+    const settlements = [
+      ["May 9", "UP", "80530.00", "80179.45", "收盘高于 reference"],
+      ["May 10", "UP", "81444.05", "80530.00", "收盘高于 reference"],
+      ["May 11", "DOWN", "81408.98", "81444.05", "收盘低于 reference"],
+      ["May 12", "DOWN", "80300.24", "81408.98", "收盘低于 reference"],
+      ["May 13", "DOWN", "79020.40", "80300.24", "收盘低于 reference"],
+      ["May 14", "UP", "81481.02", "79020.40", "收盘高于 reference"],
+      ["May 15", "DOWN", "79154.22", "81496.74", "收盘低于 reference"],
+      ["May 18", "DOWN", "76324.55", "78075.02", "收盘低于 reference"],
+      ["May 19", "UP", "76528.00", "76324.55", "收盘高于 reference"]
+    ];
+
+    const modelPnl = [
+      ["iv_digital_v1", 47.01],
+      ["always_up", 102.04],
+      ["always_down", -125.70],
+      ["buy_cheaper_side", -631.51]
+    ];
+
+    const marketPnl = [
+      ["May 11", 222.63],
+      ["May 9", -40.07],
+      ["May 14", -21.08],
+      ["May 18", 27.35],
+      ["May 15", 1.37],
+      ["May 19", 0.44]
+    ];
+
+    const replay = {
+      maker_first: { trades: 55, total: -1.4288, avg: -0.0260, pos: "21.82%", hold: "16.33m", note: "默认执行失败，paper trading no-go 的直接原因。" },
+      taker_baseline: { trades: 96, total: 0.35, avg: 0.00365, pos: "14.58%", hold: "9.39m", note: "总和略正但正收益比例低，不足以单独作为策略。" },
+      taker_hold: { trades: 36, total: 0.34, avg: 0.00944, pos: "55.56%", hold: "10.54m", note: "最值得继续研究，但需要更多市场和 out-of-sample 验证。" }
+    };
+
+    const stepTexts = [
+      "数据足够做一轮研究复盘，但还不足以做交易批准。原因是样本覆盖不均匀，May 11 权重很大，May 9 和 May 14 又是负市场。",
+      "模型不是完全没用。iv_digital_v1 的 settlement PnL 为正，Brier/log-loss 也不错。但它没有跑赢 always_up，说明这批样本里方向偏置仍然强于模型选择。",
+      "执行层是当前最大问题。默认 maker-first 以更好价格挂单，但被成交后的路径亏钱，说明可能存在 adverse selection 或退出机制不合格。",
+      "下一步不是上线，而是继续采样更多 settled markets，并开一个 execution robustness WU，专门验证 taker_hold 和高 buffer maker。"
+    ];
+
+    function tag(kind) {
+      if (kind === "conclusion") return '<span class="tag good">conclusion-grade</span>';
+      if (kind === "partial") return '<span class="tag warn">partial</span>';
+      return '<span class="tag bad">exclude</span>';
+    }
+
+    function signedClass(v) {
+      return v >= 0 ? "good" : "bad";
+    }
+
+    function barRows(rows, maxAbs) {
+      return rows.map(([name, value]) => {
+        const pct = Math.min(50, Math.abs(value) / maxAbs * 50);
+        const cls = value >= 0 ? "" : "neg";
+        const color = value >= 0 ? "good" : "bad";
+        return `<div class="bar-row">
+          <div>${name}</div>
+          <div class="bar-track"><span class="axis"></span><span class="bar ${cls}" style="width:${pct}%"></span></div>
+          <strong class="${color}">${value > 0 ? "+" : ""}${value}</strong>
+        </div>`;
+      }).join("");
+    }
+
+    function renderReplay(name) {
+      const r = replay[name];
+      document.getElementById("replayCards").innerHTML = `
+        <div class="card span-3"><div class="metric-label">Trades</div><div class="metric-value">${r.trades}</div><p class="metric-note">触发交易数</p></div>
+        <div class="card span-3"><div class="metric-label">Total move</div><div class="metric-value ${signedClass(r.total)}">${r.total > 0 ? "+" : ""}${r.total}</div><p class="metric-note">总 realized move</p></div>
+        <div class="card span-3"><div class="metric-label">Avg move</div><div class="metric-value ${signedClass(r.avg)}">${r.avg > 0 ? "+" : ""}${r.avg}</div><p class="metric-note">单笔平均</p></div>
+        <div class="card span-3"><div class="metric-label">Positive ratio</div><div class="metric-value">${r.pos}</div><p class="metric-note">正收益比例</p></div>
+        <div class="card span-12"><p class="plain">${r.note} 平均持仓 ${r.hold}。</p></div>
+      `;
+    }
+
+    document.querySelectorAll(".nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.section).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".step").forEach(step => {
+      step.addEventListener("click", () => {
+        document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+        step.classList.add("active");
+        document.getElementById("stepText").innerHTML = `<p>${stepTexts[Number(step.dataset.step)]}</p>`;
+      });
+    });
+
+    document.querySelectorAll("[data-replay]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-replay]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderReplay(btn.dataset.replay);
+      });
+    });
+
+    document.getElementById("marketRows").innerHTML = markets.map(m => `
+      <tr>
+        <td><strong>${m[0]}</strong></td>
+        <td>${m[1]}</td>
+        <td>${m[2]}</td>
+        <td>${tag(m[3])}</td>
+        <td>${m[4]}</td>
+      </tr>
+    `).join("");
+
+    document.getElementById("settlementRows").innerHTML = settlements.map(s => `
+      <tr>
+        <td><strong>${s[0]}</strong></td>
+        <td><span class="tag ${s[1] === "UP" ? "good" : "info"}">${s[1]}</span></td>
+        <td>${s[2]}</td>
+        <td>${s[3]}</td>
+        <td>${s[4]}</td>
+      </tr>
+    `).join("");
+
+    document.getElementById("modelBars").innerHTML = barRows(modelPnl, 631.51);
+    document.getElementById("marketPnlBars").innerHTML = barRows(marketPnl, 222.63);
+    renderReplay("maker_first");
+  </script>
+</body>
+</html>

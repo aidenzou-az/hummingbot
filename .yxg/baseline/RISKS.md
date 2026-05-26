@@ -3,8 +3,8 @@ artifact_type: baseline-risks
 schema_version: "1.0"
 kernel_version: "1"
 id: risks
-created_at: "2026-05-08"
-updated_at: "2026-05-08"
+created_at: "2026-05-26"
+updated_at: "2026-05-26"
 ---
 
 # Risks
@@ -18,7 +18,7 @@ updated_at: "2026-05-08"
 ## Verification Gaps
 - [code-backed] No explicit test script was detected in package.json.
 - [code-backed] No test files were detected from repository file names.
-- [code-backed] Recent completed work WU-006 validated Unit tests verify settlement source precedence and confidence labels.; Unit tests verify official, Binance rule, and proxy settlements are never merged silently in aggregate conclusions..
+- [code-backed] Recent completed work WU-017 validated Frozen DB exists and row counts match the original at freeze time.; Data-quality report identifies usable and unusable markets..
 
 ## Sensitive Paths
 - [code-backed] .yxg/ is a framework state root and should be updated intentionally.

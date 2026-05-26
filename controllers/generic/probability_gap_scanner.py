@@ -16,6 +16,14 @@ from controllers.generic.probability_gap_sampling import (
     replay_tradable_windows,
     summarize_replays,
 )
+from controllers.generic.probability_gap_forward import (
+    estimate_forward_basis,
+    parse_millisecond_time,
+)
+from controllers.generic.probability_gap_option_chain import (
+    build_option_chain_slice,
+    estimate_call_spread_digital,
+)
 from controllers.generic.probability_gap_scanner_utils import (
     BinanceSignal,
     ET,
@@ -23,6 +31,7 @@ from controllers.generic.probability_gap_scanner_utils import (
     build_daily_market_slug,
     calculate_probability_gap,
     evaluate_overlap_window,
+    overlap_reason_blocks_sampling,
     parse_polymarket_daily_market,
     safe_decimal,
 )
@@ -33,8 +42,12 @@ if TYPE_CHECKING:
 
 BINANCE_OPTIONS_MARK_URL = "https://eapi.binance.com/eapi/v1/mark"
 BINANCE_OPTIONS_EXCHANGE_INFO_URL = "https://eapi.binance.com/eapi/v1/exchangeInfo"
+BINANCE_OPTIONS_TICKER_URL = "https://eapi.binance.com/eapi/v1/ticker"
 BINANCE_SPOT_KLINES_URL = "https://api.binance.com/api/v3/klines"
 BINANCE_SPOT_TICKER_URL = "https://api.binance.com/api/v3/ticker/price"
+BINANCE_USDT_PERP_PREMIUM_INDEX_URL = "https://fapi.binance.com/fapi/v1/premiumIndex"
+BINANCE_COIN_DELIVERY_PREMIUM_INDEX_URL = "https://dapi.binance.com/dapi/v1/premiumIndex"
+BINANCE_COIN_DELIVERY_EXCHANGE_INFO_URL = "https://dapi.binance.com/dapi/v1/exchangeInfo"
 POLYMARKET_GAMMA_MARKETS_URL = "https://gamma-api.polymarket.com/markets"
 
 ZERO = Decimal("0")
@@ -110,9 +123,6 @@ class ProbabilityGapScanner(ControllerBase):
                     return await response.json()
             except Exception as exc:
                 last_error = exc
-                if self._http_session is not None and not self._http_session.closed:
-                    await self._http_session.close()
-                self._http_session = None
                 if attempt < 2:
                     await asyncio.sleep(0.5 * (2 ** attempt))
         if last_error is not None:
@@ -139,12 +149,18 @@ class ProbabilityGapScanner(ControllerBase):
                 raw_markets.extend(item for item in response if isinstance(item, dict))
         return raw_markets
 
-    async def _fetch_option_market_data(self) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
-        marks_response, exchange_info_response = await asyncio.gather(
+    async def _fetch_option_market_data(self) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+        marks_response, exchange_info_response, ticker_response = await asyncio.gather(
             self._request_json(BINANCE_OPTIONS_MARK_URL),
             self._request_json(BINANCE_OPTIONS_EXCHANGE_INFO_URL),
+            self._request_json(BINANCE_OPTIONS_TICKER_URL),
         )
         marks = [item for item in marks_response if isinstance(item, dict)] if isinstance(marks_response, list) else []
+        tickers_by_symbol = {
+            str(item.get("symbol", "")): item
+            for item in ticker_response
+            if isinstance(item, dict) and item.get("symbol")
+        } if isinstance(ticker_response, list) else {}
         option_metadata: Dict[str, Dict[str, Any]] = {}
         if isinstance(exchange_info_response, dict):
             raw_symbols = exchange_info_response.get("optionSymbols")
@@ -154,7 +170,7 @@ class ProbabilityGapScanner(ControllerBase):
                     for item in raw_symbols
                     if isinstance(item, dict) and item.get("symbol")
                 }
-        return marks, option_metadata
+        return marks, option_metadata, tickers_by_symbol
 
     def _select_latest_option_signal(
         self,
@@ -266,6 +282,55 @@ class ProbabilityGapScanner(ControllerBase):
         )
         return safe_decimal(response.get("price")) if isinstance(response, dict) else None
 
+    async def _fetch_forward_market_data(self) -> Dict[str, Any]:
+        perp_response, delivery_response, delivery_exchange_response = await asyncio.gather(
+            self._request_json(BINANCE_USDT_PERP_PREMIUM_INDEX_URL, params={"symbol": "BTCUSDT"}),
+            self._request_json(BINANCE_COIN_DELIVERY_PREMIUM_INDEX_URL),
+            self._request_json(BINANCE_COIN_DELIVERY_EXCHANGE_INFO_URL),
+            return_exceptions=True,
+        )
+        perp: Dict[str, Any] = perp_response if isinstance(perp_response, dict) else {}
+        raw_delivery = delivery_response if isinstance(delivery_response, list) else []
+        delivery_dates_by_symbol: Dict[str, datetime] = {}
+        if isinstance(delivery_exchange_response, dict):
+            for symbol_info in delivery_exchange_response.get("symbols", []):
+                if not isinstance(symbol_info, dict):
+                    continue
+                symbol = str(symbol_info.get("symbol", ""))
+                if not symbol.startswith("BTCUSD_"):
+                    continue
+                delivery_time = parse_millisecond_time(symbol_info.get("deliveryDate"))
+                if delivery_time is not None:
+                    delivery_dates_by_symbol[symbol] = delivery_time
+        delivery_candidates = []
+        for item in raw_delivery:
+            if not isinstance(item, dict):
+                continue
+            symbol = str(item.get("symbol", ""))
+            if not symbol.startswith("BTCUSD_"):
+                continue
+            delivery_time = (
+                parse_millisecond_time(item.get("deliveryTime") or item.get("deliveryDate"))
+                or delivery_dates_by_symbol.get(symbol)
+            )
+            price = safe_decimal(item.get("markPrice") or item.get("indexPrice"))
+            if delivery_time is None or price is None:
+                continue
+            delivery_candidates.append(
+                {
+                    "symbol": symbol,
+                    "delivery_time": delivery_time,
+                    "price": price,
+                }
+            )
+        return {
+            "perp_mark_price": safe_decimal(perp.get("markPrice")),
+            "perp_index_price": safe_decimal(perp.get("indexPrice")),
+            "perp_last_funding_rate": safe_decimal(perp.get("lastFundingRate")),
+            "perp_next_funding_time": parse_millisecond_time(perp.get("nextFundingTime")),
+            "delivery_candidates": delivery_candidates,
+        }
+
     async def update_processed_data(self):
         now_ts = self.market_data_provider.time()
         if self.processed_data and now_ts - self._last_refresh_timestamp < self._current_refresh_interval(now_ts):
@@ -274,12 +339,13 @@ class ProbabilityGapScanner(ControllerBase):
         now = datetime.fromtimestamp(now_ts, tz=UTC)
 
         try:
-            polymarket_raw_markets, current_spot_price, option_market_data = await asyncio.gather(
+            polymarket_raw_markets, current_spot_price, option_market_data, forward_market_data = await asyncio.gather(
                 self._fetch_polymarket_markets(),
                 self._fetch_current_spot_price(),
                 self._fetch_option_market_data(),
+                self._fetch_forward_market_data(),
             )
-            option_marks, option_metadata = option_market_data
+            option_marks, option_metadata, tickers_by_symbol = option_market_data
 
             if current_spot_price is None:
                 raise ValueError("missing_current_spot_price")
@@ -300,18 +366,18 @@ class ProbabilityGapScanner(ControllerBase):
                     )
                     continue
 
-                rejection_reason = evaluate_overlap_window(
+                trading_window_rejection_reason = evaluate_overlap_window(
                     market=market,
                     now=now,
                     min_minutes_before_settlement=self.config.min_minutes_before_settlement,
                     max_minutes_before_settlement=self.config.max_minutes_before_settlement,
                 )
-                if rejection_reason is not None:
+                if overlap_reason_blocks_sampling(trading_window_rejection_reason):
                     rejected_markets.append(
                         {
                             "question": market.question,
                             "slug": market.slug,
-                            "rejection_reason": rejection_reason,
+                            "rejection_reason": trading_window_rejection_reason,
                         }
                     )
                     continue
@@ -326,6 +392,17 @@ class ProbabilityGapScanner(ControllerBase):
                         }
                     )
                     continue
+
+                forward_basis = estimate_forward_basis(
+                    now=now,
+                    market_end_time=market.end_time,
+                    spot_price=current_spot_price,
+                    perp_mark_price=forward_market_data.get("perp_mark_price"),
+                    perp_index_price=forward_market_data.get("perp_index_price"),
+                    perp_last_funding_rate=forward_market_data.get("perp_last_funding_rate"),
+                    perp_next_funding_time=forward_market_data.get("perp_next_funding_time"),
+                    delivery_candidates=forward_market_data.get("delivery_candidates", []),
+                )
 
                 (
                     latest_option_delta,
@@ -370,6 +447,22 @@ class ProbabilityGapScanner(ControllerBase):
                     )
                     continue
 
+                option_chain_slice = build_option_chain_slice(
+                    marks=option_marks,
+                    option_metadata=option_metadata,
+                    tickers_by_symbol=tickers_by_symbol,
+                    selected_expiry=latest_option_expiry,
+                    reference_price=reference_price,
+                    current_spot_price=current_spot_price,
+                    observed_at=now,
+                )
+                call_spread_estimate = estimate_call_spread_digital(
+                    option_chain_slice=option_chain_slice,
+                    reference_price=reference_price,
+                    market_end_time=market.end_time,
+                    observed_at=now,
+                )
+
                 forced_exit_time = min(
                     latest_option_expiry if latest_option_expiry is not None else market.end_time,
                     market.end_time - timedelta(minutes=float(self.config.min_minutes_before_settlement)),
@@ -383,6 +476,9 @@ class ProbabilityGapScanner(ControllerBase):
                 )
                 is_tradable = binance_signal.tradable
                 classification_reason = binance_signal.classification_reason
+                if trading_window_rejection_reason is not None:
+                    is_tradable = False
+                    classification_reason = trading_window_rejection_reason
                 if binance_signal.model_confidence == "low" and not self.config.allow_low_confidence_trading:
                     is_tradable = False
                     classification_reason = "low_model_confidence"
@@ -396,6 +492,7 @@ class ProbabilityGapScanner(ControllerBase):
                     "reference_time": market.reference_time.isoformat(),
                     "reference_price": reference_price,
                     "current_spot_price": current_spot_price,
+                    **forward_basis.as_payload(),
                     "binance_signal_kind": binance_signal.signal_kind,
                     "binance_signal_value": gap.binance_signal,
                     "model_version": binance_signal.model_version,
@@ -414,6 +511,11 @@ class ProbabilityGapScanner(ControllerBase):
                     "minutes_to_settlement": binance_signal.minutes_to_settlement,
                     "minutes_to_signal_expiry": binance_signal.minutes_to_signal_expiry,
                     "selected_option_expiry": latest_option_expiry.isoformat() if latest_option_expiry is not None else "",
+                    "option_chain_slice": option_chain_slice.get("rows", []),
+                    "option_chain_slice_count": len(option_chain_slice.get("rows", [])),
+                    "option_chain_slice_source": option_chain_slice.get("source", ""),
+                    "option_chain_slice_expiry": option_chain_slice.get("expiry", ""),
+                    **call_spread_estimate.as_payload(),
                     "lower_strike": lower_strike if lower_strike is not None else "",
                     "lower_delta": lower_delta if lower_delta is not None else "",
                     "lower_iv": lower_iv if lower_iv is not None else "",
@@ -556,6 +658,24 @@ class ProbabilityGapScanner(ControllerBase):
             "taker_edge_down": item.get("taker_edge_down", ""),
             "current_spot_price": item.get("current_spot_price", ""),
             "reference_price": item.get("reference_price", ""),
+            "forward_source": item.get("forward_source", ""),
+            "estimated_forward_price": item.get("estimated_forward_price", ""),
+            "basis_annualized": item.get("basis_annualized", ""),
+            "perp_mark_price": item.get("perp_mark_price", ""),
+            "perp_index_price": item.get("perp_index_price", ""),
+            "perp_last_funding_rate": item.get("perp_last_funding_rate", ""),
+            "perp_next_funding_time": item.get("perp_next_funding_time", ""),
+            "delivery_symbol": item.get("delivery_symbol", ""),
+            "delivery_price": item.get("delivery_price", ""),
+            "forward_basis_reason": item.get("forward_basis_reason", ""),
+            "option_chain_slice": item.get("option_chain_slice", []),
+            "option_chain_slice_count": item.get("option_chain_slice_count", ""),
+            "option_chain_slice_source": item.get("option_chain_slice_source", ""),
+            "option_chain_slice_expiry": item.get("option_chain_slice_expiry", ""),
+            "option_chain_horizon_mismatch_minutes": item.get("option_chain_horizon_mismatch_minutes", ""),
+            "smile_call_spread_probability": item.get("smile_call_spread_probability", ""),
+            "smile_call_spread_status": item.get("smile_call_spread_status", ""),
+            "smile_call_spread_reason": item.get("smile_call_spread_reason", ""),
             "up_best_bid": item.get("polymarket_up_best_bid", ""),
             "up_best_ask": item.get("polymarket_up_best_ask", ""),
             "down_best_bid": item.get("polymarket_down_best_bid", ""),
@@ -614,6 +734,10 @@ class ProbabilityGapScanner(ControllerBase):
                     "lo_iv": float(item["lower_iv"]) if item.get("lower_iv", "") != "" else None,
                     "hi_k": float(item["upper_strike"]) if item["upper_strike"] != "" else None,
                     "hi_iv": float(item["upper_iv"]) if item.get("upper_iv", "") != "" else None,
+                    "fwd_src": item.get("forward_source", ""),
+                    "basis": float(item["basis_annualized"]) if item.get("basis_annualized", "") != "" else None,
+                    "chain": item.get("option_chain_slice_count", 0),
+                    "smile": item.get("smile_call_spread_status", ""),
                     "penalty": float(item["binance_overlap_penalty"]),
                     "up_ask": float(item["polymarket_up_best_ask"]),
                     "down_ask": float(item["polymarket_down_best_ask"]),

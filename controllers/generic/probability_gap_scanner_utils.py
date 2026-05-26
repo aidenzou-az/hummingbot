@@ -248,6 +248,10 @@ def evaluate_overlap_window(
     return None
 
 
+def overlap_reason_blocks_sampling(reason: Optional[str]) -> bool:
+    return reason in {"market_already_settled", "inside_exit_buffer"}
+
+
 def build_binance_overlap_signal(
     now: datetime,
     market: PolymarketDailyMarket,

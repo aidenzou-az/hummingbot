@@ -1,0 +1,460 @@
+{
+  "by_source": {
+    "binance_rule_1m_close": {
+      "a_edge_truth_table": [
+        {
+          "avg_settlement_pnl": 0.013243243243243243,
+          "avg_signal": 0.009489264793329052,
+          "bucket": "0-2c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 37,
+          "positive_pnl_rate": 0.5135135135135135,
+          "settlement_win_rate": 0.5135135135135135,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.010210355987055017,
+          "avg_signal": 0.010080370217813982,
+          "bucket": "0-2c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 618,
+          "positive_pnl_rate": 0.48705501618122976,
+          "settlement_win_rate": 0.48705501618122976,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.106,
+          "avg_signal": 0.021721306154987855,
+          "bucket": "2-3c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 5,
+          "positive_pnl_rate": 0.0,
+          "settlement_win_rate": 0.0,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.054362017804154304,
+          "avg_signal": 0.025241375278911772,
+          "bucket": "2-3c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 337,
+          "positive_pnl_rate": 0.658753709198813,
+          "settlement_win_rate": 0.658753709198813,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.0275,
+          "avg_signal": 0.04354223839527169,
+          "bucket": "3-5c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 4,
+          "positive_pnl_rate": 0.25,
+          "settlement_win_rate": 0.25,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.06563402889245586,
+          "avg_signal": 0.039617183583598475,
+          "bucket": "3-5c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 623,
+          "positive_pnl_rate": 0.6725521669341894,
+          "settlement_win_rate": 0.6725521669341894,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.17,
+          "avg_signal": 0.05613752025941145,
+          "bucket": "5-8c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 1,
+          "positive_pnl_rate": 1.0,
+          "settlement_win_rate": 1.0,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.015549132947976878,
+          "avg_signal": 0.06063721322576367,
+          "bucket": "5-8c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 346,
+          "positive_pnl_rate": 0.5144508670520231,
+          "settlement_win_rate": 0.5144508670520231,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.02931818181818182,
+          "avg_signal": 0.09112443705648533,
+          "bucket": "8-10c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 88,
+          "positive_pnl_rate": 0.5113636363636364,
+          "settlement_win_rate": 0.5113636363636364,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.004,
+          "avg_signal": -0.002399579451609031,
+          "bucket": "<0",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 10,
+          "positive_pnl_rate": 0.5,
+          "settlement_win_rate": 0.5,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.06958904109589041,
+          "avg_signal": -0.0026586299612086596,
+          "bucket": "<0",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 219,
+          "positive_pnl_rate": 0.3561643835616438,
+          "settlement_win_rate": 0.3561643835616438,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.15871794871794873,
+          "avg_signal": 0.12498894753270785,
+          "bucket": ">=10c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 78,
+          "positive_pnl_rate": 0.6538461538461539,
+          "settlement_win_rate": 0.6538461538461539,
+          "time_to_expiry_bucket": ">6h"
+        }
+      ],
+      "a_residual_truth_table": [
+        {
+          "avg_settlement_pnl": 0.00972972972972973,
+          "avg_signal": 0.009861170478783012,
+          "bucket": "0-2c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 37,
+          "positive_pnl_rate": 0.5135135135135135,
+          "settlement_win_rate": 0.5135135135135135,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.038269794721407624,
+          "avg_signal": 0.009265872385659138,
+          "bucket": "0-2c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 682,
+          "positive_pnl_rate": 0.4252199413489736,
+          "settlement_win_rate": 0.4252199413489736,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.03857142857142857,
+          "avg_signal": 0.023644495010684,
+          "bucket": "2-3c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 14,
+          "positive_pnl_rate": 0.2857142857142857,
+          "settlement_win_rate": 0.2857142857142857,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.04389240506329114,
+          "avg_signal": 0.025209747635706777,
+          "bucket": "2-3c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 316,
+          "positive_pnl_rate": 0.620253164556962,
+          "settlement_win_rate": 0.620253164556962,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.095,
+          "avg_signal": 0.04336727883048325,
+          "bucket": "3-5c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 2,
+          "positive_pnl_rate": 0.0,
+          "settlement_win_rate": 0.0,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.05734814814814815,
+          "avg_signal": 0.0400254061685248,
+          "bucket": "3-5c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 675,
+          "positive_pnl_rate": 0.6577777777777778,
+          "settlement_win_rate": 0.6577777777777778,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.08333333333333333,
+          "avg_signal": 0.05619063872651057,
+          "bucket": "5-8c",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 3,
+          "positive_pnl_rate": 0.6666666666666666,
+          "settlement_win_rate": 0.6666666666666666,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.02201388888888889,
+          "avg_signal": 0.0603977592673641,
+          "bucket": "5-8c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 432,
+          "positive_pnl_rate": 0.5902777777777778,
+          "settlement_win_rate": 0.5902777777777778,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": -0.032745098039215687,
+          "avg_signal": 0.08949874504933618,
+          "bucket": "8-10c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 102,
+          "positive_pnl_rate": 0.43137254901960786,
+          "settlement_win_rate": 0.43137254901960786,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.1,
+          "avg_signal": -0.00017270425252351,
+          "bucket": "<0",
+          "gamma_risk": "low",
+          "model_confidence": "medium",
+          "n": 1,
+          "positive_pnl_rate": 1.0,
+          "settlement_win_rate": 1.0,
+          "time_to_expiry_bucket": ">6h"
+        },
+        {
+          "avg_settlement_pnl": 0.1430392156862745,
+          "avg_signal": 0.12358219056004824,
+          "bucket": ">=10c",
+          "gamma_risk": "medium",
+          "model_confidence": "medium",
+          "n": 102,
+          "positive_pnl_rate": 0.6372549019607843,
+          "settlement_win_rate": 0.6372549019607843,
+          "time_to_expiry_bucket": ">6h"
+        }
+      ],
+      "calibration": {
+        "brier": 0.07952544324654716,
+        "buckets": [
+          {
+            "actual_up_rate": 0.0,
+            "avg_probability": 0.16730262864884418,
+            "bucket": "10-20%",
+            "n": 437
+          },
+          {
+            "actual_up_rate": 0.0,
+            "avg_probability": 0.2297181937047476,
+            "bucket": "20-30%",
+            "n": 679
+          },
+          {
+            "actual_up_rate": 0.0,
+            "avg_probability": 0.30639548830825,
+            "bucket": "30-40%",
+            "n": 2
+          },
+          {
+            "actual_up_rate": 1.0,
+            "avg_probability": 0.4855577567670871,
+            "bucket": "40-50%",
+            "n": 23
+          },
+          {
+            "actual_up_rate": 1.0,
+            "avg_probability": 0.5475008111390672,
+            "bucket": "50-60%",
+            "n": 311
+          },
+          {
+            "actual_up_rate": 1.0,
+            "avg_probability": 0.6533065172466832,
+            "bucket": "60-70%",
+            "n": 353
+          },
+          {
+            "actual_up_rate": 1.0,
+            "avg_probability": 0.7726246772078819,
+            "bucket": "70-80%",
+            "n": 425
+          },
+          {
+            "actual_up_rate": 1.0,
+            "avg_probability": 0.8164061977239094,
+            "bucket": "80-90%",
+            "n": 136
+          }
+        ],
+        "log_loss": 0.3172371090205417,
+        "n": 2366
+      },
+      "closeout_vs_settlement": {
+        "ret_20m": {
+          "avg_closeout": 0.0017012272534913245,
+          "avg_settlement": 0.02035124841303428,
+          "n": 2363,
+          "same_sign_rate": 0.4363097757088447
+        },
+        "ret_5m": {
+          "avg_closeout": -0.003918747355057131,
+          "avg_settlement": 0.019983072365636904,
+          "n": 2363,
+          "same_sign_rate": 0.3910283537875582
+        }
+      },
+      "n_entries": 2366
+    },
+    "unavailable": {
+      "a_edge_truth_table": [],
+      "a_residual_truth_table": [],
+      "calibration": {
+        "brier": null,
+        "buckets": [],
+        "log_loss": null,
+        "n": 0
+      },
+      "closeout_vs_settlement": {
+        "ret_20m": {
+          "avg_closeout": null,
+          "avg_settlement": null,
+          "n": 0,
+          "same_sign_rate": null
+        },
+        "ret_5m": {
+          "avg_closeout": null,
+          "avg_settlement": null,
+          "n": 0,
+          "same_sign_rate": null
+        }
+      },
+      "n_entries": 0
+    }
+  },
+  "entries_count": 2366,
+  "settlement_coverage": {
+    "binance_rule_markets": 9,
+    "by_source": {
+      "binance_rule_1m_close": 9,
+      "unavailable": 2
+    },
+    "markets": 11,
+    "official_markets": 0,
+    "proxy_markets": 0,
+    "unavailable_markets": 2
+  },
+  "settlement_labels": {
+    "bitcoin-up-or-down-on-may-10-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-10-2026",
+      "outcome": "UP",
+      "reason": "btc_1d_rule_settlement_close=81444.05000000;reference_price=80530.00000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-10T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-11-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-11-2026",
+      "outcome": "DOWN",
+      "reason": "btc_1d_rule_settlement_close=81408.98000000;reference_price=81444.05000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-11T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-12-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-12-2026",
+      "outcome": "DOWN",
+      "reason": "btc_1d_rule_settlement_close=80300.24000000;reference_price=81408.98000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-12T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-13-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-13-2026",
+      "outcome": "DOWN",
+      "reason": "btc_1d_rule_settlement_close=79020.40000000;reference_price=80300.24000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-13T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-14-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-14-2026",
+      "outcome": "UP",
+      "reason": "btc_1d_rule_settlement_close=81481.02000000;reference_price=79020.40000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-14T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-15-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-15-2026",
+      "outcome": "DOWN",
+      "reason": "btc_1d_rule_settlement_close=79154.22000000;reference_price=81496.74000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-15T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-16-2026": {
+      "confidence": "none",
+      "market_slug": "bitcoin-up-or-down-on-may-16-2026",
+      "outcome": null,
+      "reason": "missing_market_end_or_observed_at",
+      "resolved_at": null,
+      "source": "unavailable"
+    },
+    "bitcoin-up-or-down-on-may-18-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-18-2026",
+      "outcome": "DOWN",
+      "reason": "btc_1d_rule_settlement_close=76324.55000000;reference_price=78075.02000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-18T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-19-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-19-2026",
+      "outcome": "UP",
+      "reason": "btc_1d_rule_settlement_close=76528.00000000;reference_price=76324.55000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-19T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    },
+    "bitcoin-up-or-down-on-may-20-2026": {
+      "confidence": "none",
+      "market_slug": "bitcoin-up-or-down-on-may-20-2026",
+      "outcome": null,
+      "reason": "missing_market_end_or_observed_at",
+      "resolved_at": null,
+      "source": "unavailable"
+    },
+    "bitcoin-up-or-down-on-may-9-2026": {
+      "confidence": "high",
+      "market_slug": "bitcoin-up-or-down-on-may-9-2026",
+      "outcome": "UP",
+      "reason": "btc_1d_rule_settlement_close=80530.00000000;reference_price=80179.45000000;tie_rule=DOWN_ON_TIE",
+      "resolved_at": "2026-05-09T16:00:00+00:00",
+      "source": "binance_rule_1m_close"
+    }
+  }
+}

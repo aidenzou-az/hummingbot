@@ -18,7 +18,19 @@
   <array>
     <dict>
       <key>Hour</key>
+      <integer>0</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
       <integer>12</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>16</integer>
       <key>Minute</key>
       <integer>0</integer>
     </dict>
@@ -26,7 +38,7 @@
       <key>Hour</key>
       <integer>22</integer>
       <key>Minute</key>
-      <integer>30</integer>
+      <integer>0</integer>
     </dict>
   </array>
 
@@ -47,9 +59,9 @@
     <key>PROB_GAP_RUN_DAYS</key>
     <string>10</string>
     <key>PROB_GAP_DB_PATH</key>
-    <string>.yxg/data/probability_gap_samples_wu006_clean.sqlite</string>
+    <string>.yxg/data/probability_gap_samples_wu013_clean.sqlite</string>
     <key>PROB_GAP_LOG_PATH</key>
-    <string>/tmp/probability_gap_sampling_wu006_clean.log</string>
+    <string>/tmp/probability_gap_sampling_wu013_clean.log</string>
     <key>PROB_GAP_PYDEPS_PATH</key>
     <string>/tmp/hb_pydeps</string>
     <key>PROB_GAP_PYTHON_BIN</key>

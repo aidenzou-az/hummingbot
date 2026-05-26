@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+import os
 import sqlite3
 import sys
 import time
@@ -92,14 +93,34 @@ def latest_rows(db_path: Path, limit: int = 5):
         connection.close()
 
 
+def configure_runtime_paths():
+    pydeps_path = os.environ.get("PROB_GAP_PYDEPS_PATH")
+    if pydeps_path:
+        sys.path.insert(0, pydeps_path)
+    sys.path.insert(0, ".")
+
+
+def validate_runtime_dependencies():
+    try:
+        import aiohttp
+    except Exception as exc:
+        raise RuntimeError(f"aiohttp_import_failed:{exc}") from exc
+    if not hasattr(aiohttp, "ClientTimeout"):
+        module_path = getattr(aiohttp, "__file__", None)
+        version = getattr(aiohttp, "__version__", None)
+        raise RuntimeError(
+            f"aiohttp_invalid_missing_ClientTimeout:path={module_path}:version={version}"
+        )
+
+
 async def run_sampling(args):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     install_scanner_stubs()
-    sys.path.insert(0, "/tmp/hb_pydeps")
-    sys.path.insert(0, ".")
+    configure_runtime_paths()
+    validate_runtime_dependencies()
 
     from controllers.generic.probability_gap_scanner import ProbabilityGapScanner, ProbabilityGapScannerConfig
 

@@ -14,6 +14,7 @@ from controllers.generic.probability_gap_scanner_utils import (
     PolymarketDailyMarket,
     calculate_digital_probability,
     calculate_probability_gap,
+    overlap_reason_blocks_sampling,
 )
 
 
@@ -163,6 +164,12 @@ class ProbabilityGapSamplingTest(TestCase):
             ),
         )
 
+    def test_outside_overlap_window_does_not_block_sampling(self):
+        self.assertFalse(overlap_reason_blocks_sampling(None))
+        self.assertFalse(overlap_reason_blocks_sampling("outside_overlap_window"))
+        self.assertTrue(overlap_reason_blocks_sampling("inside_exit_buffer"))
+        self.assertTrue(overlap_reason_blocks_sampling("market_already_settled"))
+
     def test_snapshot_store_and_replay_summary(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "probability_gap.sqlite"
@@ -289,6 +296,31 @@ class ProbabilityGapSamplingTest(TestCase):
                         "taker_edge_down": Decimal("0.02"),
                         "current_spot_price": Decimal("78000"),
                         "reference_price": Decimal("78400"),
+                        "forward_source": "perp_mark",
+                        "estimated_forward_price": Decimal("78012"),
+                        "basis_annualized": Decimal("0.25"),
+                        "perp_mark_price": Decimal("78012"),
+                        "perp_index_price": Decimal("78000"),
+                        "perp_last_funding_rate": Decimal("0.0001"),
+                        "perp_next_funding_time": "2026-05-03T16:00:00+00:00",
+                        "delivery_symbol": "",
+                        "delivery_price": "",
+                        "forward_basis_reason": "perp_mark_basis_fallback",
+                        "option_chain_slice": [
+                            {
+                                "symbol": "BTC-260503-78000-C",
+                                "strike": Decimal("78000"),
+                                "side": "CALL",
+                                "mark_price": Decimal("100"),
+                            }
+                        ],
+                        "option_chain_slice_count": 1,
+                        "option_chain_slice_source": "binance_eapi_mark_ticker",
+                        "option_chain_slice_expiry": "2026-05-03T16:00:00+00:00",
+                        "option_chain_horizon_mismatch_minutes": Decimal("0"),
+                        "smile_call_spread_probability": Decimal("0.48"),
+                        "smile_call_spread_status": "ok",
+                        "smile_call_spread_reason": "finite_difference_call_spread",
                         "up_best_bid": Decimal("0.26"),
                         "up_best_ask": Decimal("0.27"),
                         "down_best_bid": Decimal("0.73"),
@@ -305,6 +337,12 @@ class ProbabilityGapSamplingTest(TestCase):
             self.assertEqual("iv_digital_v1", snapshots[0]["model_version"])
             self.assertEqual(Decimal("0.62"), snapshots[0]["option_iv"])
             self.assertEqual(Decimal("0.02"), snapshots[0]["taker_edge_down"])
+            self.assertEqual("perp_mark", snapshots[0]["forward_source"])
+            self.assertEqual(Decimal("78012"), snapshots[0]["estimated_forward_price"])
+            self.assertEqual(datetime(2026, 5, 3, 16, 0, tzinfo=UTC), snapshots[0]["perp_next_funding_time"])
+            self.assertEqual(1, snapshots[0]["option_chain_slice_count"])
+            self.assertEqual("BTC-260503-78000-C", snapshots[0]["option_chain_slice"][0]["symbol"])
+            self.assertEqual(Decimal("0.48"), snapshots[0]["smile_call_spread_probability"])
 
     def test_replay_entry_respects_min_net_edge(self):
         snapshots = [
